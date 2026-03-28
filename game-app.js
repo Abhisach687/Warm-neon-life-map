@@ -444,8 +444,8 @@
       : "";
 
     $("diagnostic-questions").innerHTML = DATA.diagnosticSurvey.map((item) => `
-      <fieldset class="diagnostic-card">
-        <legend>${item.prompt}</legend>
+      <article class="diagnostic-card">
+        <h4>${item.prompt}</h4>
         <p class="muted">${item.help}</p>
         <div class="likert-grid">
           ${DATA.diagnosticOptions.map((option) => `
@@ -455,7 +455,7 @@
             </label>
           `).join("")}
         </div>
-      </fieldset>
+      </article>
     `).join("");
     $("diagnostic-note").value = latest ? latest.note || "" : "";
   }

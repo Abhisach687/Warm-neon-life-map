@@ -1750,6 +1750,8 @@ body[data-theme="light"] .toast {
 }
 
 .diagnostic-card {
+  display: grid;
+  gap: 0.7rem;
   min-width: 0;
   margin: 0;
   padding: 1rem;
@@ -1758,10 +1760,12 @@ body[data-theme="light"] .toast {
   background: rgba(255, 255, 255, 0.04);
 }
 
-.diagnostic-card legend {
-  margin-bottom: 0.6rem;
+.diagnostic-card h4 {
+  margin: 0;
   font-weight: 700;
   line-height: 1.5;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .likert-grid {
