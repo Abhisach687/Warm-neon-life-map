@@ -1486,6 +1486,12 @@ body[data-theme="light"] .toast {
   margin-bottom: 0;
 }
 
+.session-note-field {
+  margin-top: 1.35rem;
+  margin-bottom: 1rem;
+  padding-top: 0.4rem;
+}
+
 .session-item {
   display: grid;
   gap: 0.55rem;

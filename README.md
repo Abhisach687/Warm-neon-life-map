@@ -84,6 +84,7 @@ That section shows:
 - recent changes
 - suggested things to bring up
 - consistency signals and recent wins
+- reward and milestone signals the app thinks may matter
 - your own personal note
 
 This section is built from your saved scans, quest completions, streaks, memories, and notes.

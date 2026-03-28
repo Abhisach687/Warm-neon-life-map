@@ -714,6 +714,8 @@
   function renderSessionPrep(latest) {
     const current = currentQuest();
     const recentMemories = state.rewards.memories.slice(0, 2);
+    const latestArtifact = state.rewards.artifacts[0] || null;
+    const nextReward = currentChain();
     const recentNotes = Object.entries(state.notes)
       .filter(([, value]) => value && value.trim())
       .slice(-2)
@@ -760,6 +762,12 @@
           ? `Structured quests, small next steps, and guided progression seem easier to follow than open-ended plans.`
           : "No clear helpful pattern yet because I have not completed enough quests."
       },
+      {
+        title: "Reward response",
+        detail: latestArtifact
+          ? `I recently unlocked ${latestArtifact.name}, which may be useful if external markers and visible progress help me stay engaged.`
+          : `Visible rewards might matter for my motivation. The next chain reward is ${nextReward.artifact}.`
+      },
       ...recentMemories.map((memory) => ({
         title: memory.title,
         detail: memory.text
@@ -785,6 +793,12 @@
       {
         title: "Consistency signal",
         detail: `My current streak is ${getCurrentStreak()} days and my best streak is ${state.rewards.longestStreak} days.`
+      },
+      {
+        title: "Next milestone",
+        detail: current
+          ? `If I finish the current chain, I unlock ${nextReward.artifact} and the ${nextReward.badge} badge.`
+          : "I have reached the end of the current arc and may need a new milestone."
       },
       ...recentNotes.map((item) => ({
         title: `Recent note from ${item.quest.title}`,
