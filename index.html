@@ -234,8 +234,59 @@
 
         <section class="view" id="view-progress" aria-labelledby="progress-title">
           <section class="card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Session Review</p>
+                <h2 id="progress-title">Things I have to tell during psychiatric session</h2>
+              </div>
+              <span class="badge">built from your progress</span>
+            </div>
+            <p class="muted" id="session-prep-summary">
+              This page turns your app activity into a cleaner review you can use before a therapy or psychiatric session.
+            </p>
+            <div id="session-prep-overview" class="stats-grid stats-grid--wide"></div>
+            <div class="section-grid session-grid">
+              <section class="session-panel">
+                <p class="eyebrow">Current Focus</p>
+                <div id="session-focus-list" class="stack-list"></div>
+              </section>
+              <section class="session-panel">
+                <p class="eyebrow">Signals To Mention</p>
+                <div id="session-signals-list" class="stack-list"></div>
+              </section>
+              <section class="session-panel">
+                <p class="eyebrow">What Is Helping</p>
+                <div id="session-helping-list" class="stack-list"></div>
+              </section>
+              <section class="session-panel">
+                <p class="eyebrow">What Feels Hard</p>
+                <div id="session-hard-list" class="stack-list"></div>
+              </section>
+            </div>
+            <div class="section-grid session-grid">
+              <section class="session-panel">
+                <p class="eyebrow">Recent Changes</p>
+                <div id="session-changes-list" class="stack-list"></div>
+              </section>
+              <section class="session-panel">
+                <p class="eyebrow">Questions Or Topics</p>
+                <div id="session-topics-list" class="stack-list"></div>
+              </section>
+            </div>
+            <label class="text-field">
+              <span>What else do I want to tell my therapist or psychiatrist?</span>
+              <textarea
+                id="session-prep-note"
+                rows="5"
+                placeholder="Add anything personal, urgent, or important that the app cannot infer on its own."
+              ></textarea>
+            </label>
+            <p class="muted" id="session-prep-status">Saved locally on this device.</p>
+          </section>
+
+          <section class="card">
             <p class="eyebrow">Progress</p>
-            <h2 id="progress-title">Evidence signals and campaign gains</h2>
+            <h3>Evidence signals and campaign gains</h3>
             <div id="insight-stats" class="stats-grid stats-grid--wide"></div>
           </section>
 

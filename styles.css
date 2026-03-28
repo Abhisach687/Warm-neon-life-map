@@ -1345,6 +1345,40 @@ body[data-theme="light"] .toast {
   gap: 1rem;
 }
 
+.session-grid {
+  margin-top: 1.15rem;
+}
+
+.session-panel {
+  display: grid;
+  gap: 0.95rem;
+  min-width: 0;
+  padding: 1.1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.session-panel .eyebrow {
+  margin-bottom: 0;
+}
+
+.session-item {
+  display: grid;
+  gap: 0.55rem;
+  min-width: 0;
+  padding: 0.95rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.session-item h4,
+.session-item p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
 .chapter-strip,
 .node-map,
 .reward-grid {

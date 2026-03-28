@@ -19,6 +19,7 @@
       program: "all",
       status: "all"
     },
+    sessionPrepNote: "",
     notes: {},
     campaign: {
       openingChapter: "ignite",
@@ -74,6 +75,7 @@
       ...base,
       ...incoming,
       filters: { ...base.filters, ...(incoming.filters || {}) },
+      sessionPrepNote: incoming.sessionPrepNote || base.sessionPrepNote,
       notes: { ...base.notes, ...(incoming.notes || {}) },
       campaign: { ...base.campaign, ...(incoming.campaign || {}) },
       rewards: { ...base.rewards, ...(incoming.rewards || {}) }
@@ -641,6 +643,127 @@
       ...state.rewards.badges.map((badge) => `<article class="reward-card"><span class="eyebrow">Badge</span><h4>${badge}</h4></article>`),
       ...state.rewards.artifacts.map((artifact) => `<article class="reward-card"><span class="eyebrow">Artifact</span><h4>${artifact.name}</h4><p class="muted">${artifact.date}</p></article>`)
     ].join("") || `<p class="muted">Milestones appear here as you complete chains.</p>`;
+
+    renderSessionPrep(latest);
+  }
+
+  function renderSessionPrep(latest) {
+    const current = currentQuest();
+    const recentMemories = state.rewards.memories.slice(0, 2);
+    const recentNotes = Object.entries(state.notes)
+      .filter(([, value]) => value && value.trim())
+      .slice(-2)
+      .map(([questId, value]) => ({ quest: byId[questId], value }));
+    const overview = [
+      ["Latest WHO-5", latest ? `${latest.who5Score}/100` : "Not yet"],
+      ["Current lane", DATA.programs[state.campaign.laneRecommendation].label],
+      ["Completed quests", String(state.campaign.completedQuestIds.length)],
+      ["Current intensity", state.campaign.recommendedIntensity]
+    ];
+    const focusItems = [
+      {
+        title: "Current guided quest",
+        detail: current
+          ? `I am currently working on "${current.title}" in ${chapterById[current.chapter].title}.`
+          : "I have completed the current campaign arc and may need help choosing the next focus."
+      },
+      {
+        title: "Current chapter",
+        detail: chapterById[state.campaign.activeChapter].summary
+      }
+    ];
+    const signalItems = latest ? [
+      {
+        title: "Weekly scan result",
+        detail: `The app routed me toward ${DATA.programs[latest.laneRecommendation].name} with ${latest.recommendedIntensity} intensity.`
+      },
+      {
+        title: "Restoration signal",
+        detail: latest.stabilizationFlag
+          ? "The app noticed a stronger need for stabilization, recovery, or gentler pacing."
+          : "The app did not flag a strong restoration warning in the latest scan."
+      }
+    ] : [
+      {
+        title: "No weekly scan yet",
+        detail: "I have not saved a scan yet, so the app has less signal-level information."
+      }
+    ];
+    const helpingItems = [
+      {
+        title: "Things that seem to help",
+        detail: state.campaign.completedQuestIds.length
+          ? `Structured quests, small next steps, and guided progression seem easier to follow than open-ended plans.`
+          : "No clear helpful pattern yet because I have not completed enough quests."
+      },
+      ...recentMemories.map((memory) => ({
+        title: memory.title,
+        detail: memory.text
+      }))
+    ];
+    const hardItems = [
+      {
+        title: "Things that feel hard",
+        detail: latest && latest.stabilizationFlag
+          ? "The app keeps seeing signs that energy, restoration, or overall steadiness may need attention."
+          : "No strong app-detected warning yet, but I may still want to discuss friction, consistency, or motivation."
+      },
+      {
+        title: "Re-entry after pauses",
+        detail: "The app is designed around rerouting and recovery instead of punishment, which may be useful if restarting has been difficult."
+      }
+    ];
+    const changeItems = [
+      {
+        title: "Visible progress",
+        detail: `I have completed ${state.campaign.completedQuestIds.length} quests, ${state.campaign.completedChainIds.length} chains, and unlocked ${state.rewards.badges.length} badges.`
+      },
+      ...recentNotes.map((item) => ({
+        title: `Recent note from ${item.quest.title}`,
+        detail: item.value.trim().slice(0, 180)
+      }))
+    ];
+    const topicItems = [
+      {
+        title: "Good topics to bring up",
+        detail: "Changes in mood, energy, motivation, connection, consistency, and what made tasks easier or harder."
+      },
+      {
+        title: "App-guided question",
+        detail: latest && latest.stabilizationFlag
+          ? "Should I prioritize stabilization and gentler pacing right now?"
+          : `Does it make sense to keep focusing on ${DATA.programs[state.campaign.laneRecommendation].name} right now?`
+      }
+    ];
+
+    $("session-prep-summary").textContent = latest
+      ? "This page gathers your current focus, scan results, patterns, and notes into one cleaner session review."
+      : "This page becomes more useful once scans and quest notes are saved, but you can already use it to collect talking points.";
+    $("session-prep-overview").innerHTML = overview.map(([label, value]) => `
+      <article class="stat-card">
+        <span class="stat-label">${label}</span>
+        <strong class="stat-value">${value}</strong>
+      </article>
+    `).join("");
+    renderSessionList("session-focus-list", focusItems);
+    renderSessionList("session-signals-list", signalItems);
+    renderSessionList("session-helping-list", helpingItems);
+    renderSessionList("session-hard-list", hardItems);
+    renderSessionList("session-changes-list", changeItems);
+    renderSessionList("session-topics-list", topicItems);
+    $("session-prep-note").value = state.sessionPrepNote || "";
+    $("session-prep-status").textContent = state.sessionPrepNote
+      ? "Personal session note saved locally."
+      : "Saved locally on this device.";
+  }
+
+  function renderSessionList(targetId, items) {
+    $(targetId).innerHTML = items.map((item) => `
+      <article class="session-item">
+        <h4>${item.title}</h4>
+        <p class="muted">${item.detail}</p>
+      </article>
+    `).join("");
   }
 
   function renderSources() {
@@ -891,6 +1014,14 @@
       state.filters.search = event.target.value;
       saveState();
       renderArchive();
+    });
+
+    $("session-prep-note").addEventListener("input", (event) => {
+      state.sessionPrepNote = event.target.value;
+      $("session-prep-status").textContent = event.target.value.trim()
+        ? "Personal session note saved locally."
+        : "Saved locally on this device.";
+      saveState();
     });
 
     $("export-data").addEventListener("click", () => {
