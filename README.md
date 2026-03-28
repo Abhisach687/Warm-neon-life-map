@@ -34,7 +34,7 @@ That gives them a quick summary of what changed, what feels hard, what seems to 
 The app guides you through one next step at a time.
 
 - You get a current quest.
-- You complete it.
+- You open the quest workspace and answer the exercise inside the app.
 - The app unlocks the next step.
 - A weekly scan helps the app decide what you should focus on next.
 - Your progress is saved on your device.
@@ -55,9 +55,11 @@ The app has 5 main tabs:
 1. Open `Play`.
 2. Read the `Start Here` block.
 3. Run the weekly scan if it is your first time.
-4. Open the current quest.
-5. Complete the quest.
-6. Come back later and continue from the next guided step.
+4. Open the current quest workspace.
+5. Answer the exercise prompts inside the app.
+6. Complete the quest.
+7. Save daily and weekly logs in `Review`.
+8. Come back later and continue from the next guided step.
 
 ## Weekly scan
 
@@ -88,6 +90,9 @@ The app tracks:
 - artifacts
 - companion memories
 - weekly scans
+- daily logs
+- weekly reviews
+- quest response forms
 - your notes
 
 Your data is saved in the browser on your device.
@@ -114,6 +119,12 @@ That section shows:
 - your own personal note
 
 This section is built from your saved scans, quest completions, streaks, memories, and notes.
+
+The `Review` tab also includes:
+
+- a short daily log
+- a weekly review form
+- a full session report that can be exported
 
 ## Run locally
 

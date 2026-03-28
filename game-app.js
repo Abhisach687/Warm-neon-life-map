@@ -21,6 +21,11 @@
       status: "all"
     },
     sessionPrepNote: "",
+    dailyLogs: [],
+    weeklyReviews: [],
+    questResponses: {},
+    questEntries: {},
+    reportState: null,
     notes: {},
     campaign: {
       openingChapter: "ignite",
@@ -78,6 +83,11 @@
       ...incoming,
       filters: { ...base.filters, ...(incoming.filters || {}) },
       sessionPrepNote: incoming.sessionPrepNote || base.sessionPrepNote,
+      dailyLogs: incoming.dailyLogs || base.dailyLogs,
+      weeklyReviews: incoming.weeklyReviews || base.weeklyReviews,
+      questResponses: incoming.questResponses || base.questResponses,
+      questEntries: incoming.questEntries || base.questEntries,
+      reportState: incoming.reportState || base.reportState,
       notes: { ...base.notes, ...(incoming.notes || {}) },
       campaign: { ...base.campaign, ...(incoming.campaign || {}) },
       rewards: { ...base.rewards, ...(incoming.rewards || {}) }
@@ -120,6 +130,105 @@
 
   function getLatestDiagnostic() {
     return state.diagnostics[state.diagnostics.length - 1] || null;
+  }
+
+  function getLatestDailyLog() {
+    return state.dailyLogs[state.dailyLogs.length - 1] || null;
+  }
+
+  function getLatestWeeklyReview() {
+    return state.weeklyReviews[state.weeklyReviews.length - 1] || null;
+  }
+
+  function averageOfLogs(key, count = 7) {
+    const logs = state.dailyLogs.slice(-count).filter((item) => typeof item[key] === "number");
+    if (!logs.length) {
+      return null;
+    }
+    return logs.reduce((sum, item) => sum + item[key], 0) / logs.length;
+  }
+
+  function medicationSummary(count = 7) {
+    const logs = state.dailyLogs.slice(-count);
+    if (!logs.length) {
+      return "No recent medication log yet.";
+    }
+    const yes = logs.filter((item) => item.medication === "yes").length;
+    const partial = logs.filter((item) => item.medication === "partial").length;
+    const no = logs.filter((item) => item.medication === "no").length;
+    return `${yes} full, ${partial} partial, ${no} missed in the last ${logs.length} daily logs.`;
+  }
+
+  function sideEffectSummary(count = 7) {
+    const logs = state.dailyLogs.slice(-count).filter((item) => item.sideEffects && item.sideEffects !== "none");
+    if (!logs.length) {
+      return "No recent side effects logged.";
+    }
+    const highest = logs.some((item) => item.sideEffects === "strong")
+      ? "strong"
+      : logs.some((item) => item.sideEffects === "moderate")
+        ? "moderate"
+        : "mild";
+    return `Side effects were logged ${logs.length} time(s) recently, with the highest level marked as ${highest}.`;
+  }
+
+  function questHelpfulnessSummary() {
+    const responses = Object.values(state.questResponses);
+    if (!responses.length) {
+      return null;
+    }
+    const helped = responses.filter((item) => item.helped === "yes").length;
+    const notHelped = responses.filter((item) => item.helped === "no").length;
+    const hard = responses.filter((item) => Number(item.difficulty || 0) >= 4).length;
+    if (helped > notHelped) {
+      return "Recent quest responses suggest structured action cards are helping more often than not.";
+    }
+    if (hard > helped) {
+      return "Recent quest responses suggest the current quest style may feel demanding and may need gentler pacing.";
+    }
+    return "Recent quest responses are mixed, so the app should keep adapting rather than overcommitting.";
+  }
+
+  function questEntrySummary() {
+    const entries = Object.values(state.questEntries);
+    if (!entries.length) {
+      return null;
+    }
+    const lowConfidence = entries.filter((item) => Number(item.confidence || 0) <= 2).length;
+    const highDifficulty = entries.filter((item) => Number(item.difficulty || 0) >= 4).length;
+    const helped = entries.filter((item) => item.helped === "yes").length;
+    if (helped > highDifficulty) {
+      return "Structured quest answers suggest the guided exercises are helping more than they are stalling you.";
+    }
+    if (highDifficulty > helped || lowConfidence > 1) {
+      return "Structured quest answers suggest lower confidence or higher difficulty is building up, so gentler pacing may help.";
+    }
+    return "Quest answer patterns are still forming.";
+  }
+
+  function preferredSuccessDomain() {
+    const valuesEntries = Object.values(state.questEntries).filter((item) => item.template === "triple_reflection" && item.priority);
+    if (!valuesEntries.length) {
+      return null;
+    }
+    const counts = {};
+    valuesEntries.forEach((item) => {
+      counts[item.priority] = (counts[item.priority] || 0) + 1;
+    });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+  }
+
+  function routeRecommendationSummary() {
+    const latest = getLatestDiagnostic();
+    const moodAvg = averageOfLogs("mood");
+    const energyAvg = averageOfLogs("energy");
+    if (latest && latest.stabilizationFlag) {
+      return "Recent signals suggest a stabilization-forward route is safer right now.";
+    }
+    if (moodAvg !== null && energyAvg !== null && moodAvg >= 3.5 && energyAvg >= 3.5) {
+      return "Recent daily logs suggest you may be able to keep a steady or deeper pace.";
+    }
+    return "The app should keep a steady, supportive route and adjust using new logs.";
   }
 
   function getRecentDiagnostics(limit = 3) {
@@ -185,6 +294,57 @@
     const questList = questsForChain(activeChainId);
     const done = questList.filter((quest) => state.campaign.completedQuestIds.includes(quest.id)).length;
     return ((done + 1) / Math.max(questList.length, 1)) * 100;
+  }
+
+  function buildReportState() {
+    const latestDiagnostic = getLatestDiagnostic();
+    const latestDaily = getLatestDailyLog();
+    const latestWeekly = getLatestWeeklyReview();
+    const trend = getWho5TrendSummary();
+    const moodAvg = averageOfLogs("mood");
+    const sleepAvg = averageOfLogs("sleep");
+    const energyAvg = averageOfLogs("energy");
+    const focusAvg = averageOfLogs("focus");
+    const stressAvg = averageOfLogs("stress");
+    const questSummary = questHelpfulnessSummary();
+    const questEntryTrend = questEntrySummary();
+    const preferredDomain = preferredSuccessDomain();
+
+    return {
+      updatedAt: isoToday(),
+      overview: [
+        ["WHO-5", latestDiagnostic ? `${latestDiagnostic.who5Score}/100` : "Not yet"],
+        ["Mood avg", moodAvg !== null ? moodAvg.toFixed(1) : "No data"],
+        ["Energy avg", energyAvg !== null ? energyAvg.toFixed(1) : "No data"],
+        ["Best streak", `${state.rewards.longestStreak} days`]
+      ],
+      trends: [
+        trend ? trend.detail : "Not enough WHO-5 data yet for a trend.",
+        sleepAvg !== null && energyAvg !== null
+          ? `Recent sleep and energy averages are ${sleepAvg.toFixed(1)} and ${energyAvg.toFixed(1)} out of 5.`
+          : "Not enough daily sleep/energy logs yet.",
+        stressAvg !== null && moodAvg !== null
+          ? `Recent mood and stress averages are ${moodAvg.toFixed(1)} and ${stressAvg.toFixed(1)} out of 5.`
+          : "Not enough mood/stress logs yet.",
+        medicationSummary(),
+        sideEffectSummary(),
+        questSummary || "No quest response trend yet.",
+        questEntryTrend || "No quest-answer trend yet."
+      ],
+      points: [
+        routeRecommendationSummary(),
+        preferredDomain ? `My repeated success priority seems to be ${preferredDomain}.` : "No clear repeated success priority yet.",
+        latestWeekly && latestWeekly.topics ? `Topics I said matter this week: ${latestWeekly.topics}` : "No weekly topics entered yet.",
+        latestWeekly && latestWeekly.ask ? `What I want to ask in session: ${latestWeekly.ask}` : "No session question entered yet.",
+        latestDaily && latestDaily.safety !== "safe"
+          ? `Recent safety check suggests I may need more support: ${latestDaily.safety}.`
+          : "Recent safety check-ins do not show an urgent flag.",
+        currentQuest()
+          ? `Current guided action: ${currentQuest().title}.`
+          : "Current campaign arc is complete.",
+        latestDaily && latestDaily.note ? `Recent daily note: ${latestDaily.note}` : "No recent daily note saved."
+      ]
+    };
   }
 
   function buildCampaignPath(diag) {
@@ -496,8 +656,8 @@
           <span class="meta-pill">${quest.evidenceTag}</span>
         </div>
         <div class="command-card__actions">
-          <button class="primary-button" type="button" data-open-quest="${quest.id}">Open current quest</button>
-          <button class="secondary-button" type="button" data-complete-quest="${quest.id}">Complete quest</button>
+          <button class="primary-button" type="button" data-open-quest="${quest.id}">Open quest workspace</button>
+          <button class="secondary-button" type="button" data-open-quest="${quest.id}">Answer prompts inside app</button>
         </div>
       </article>
     `;
@@ -723,6 +883,7 @@
 
   function renderProgress() {
     const latest = getLatestDiagnostic();
+    state.reportState = buildReportState();
     $("insight-stats").innerHTML = [
       ["Completed quests", state.campaign.completedQuestIds.length],
       ["Completed chains", state.campaign.completedChainIds.length],
@@ -774,6 +935,8 @@
     ].join("") || `<p class="muted">Milestones appear here as you complete chains.</p>`;
 
     renderSessionPrep(latest);
+    renderFormsAndReport();
+    renderAnalyticsSection();
   }
 
   function renderSessionPrep(latest) {
@@ -934,6 +1097,194 @@
     `).join("");
   }
 
+  function renderQuestWorkspaceFields(quest, entry) {
+    const fields = quest.questFields || {};
+    if (quest.questTemplate === "triple_reflection") {
+      return `
+        <div class="quest-form-grid">
+          <label class="text-field"><span>${fields.firstLabel}</span><textarea name="first" rows="3" placeholder="${fields.firstLabel}">${entry.first || ""}</textarea></label>
+          <label class="text-field"><span>${fields.secondLabel}</span><textarea name="second" rows="3" placeholder="${fields.secondLabel}">${entry.second || ""}</textarea></label>
+          <label class="text-field full-span"><span>${fields.thirdLabel}</span><textarea name="third" rows="3" placeholder="${fields.thirdLabel}">${entry.third || ""}</textarea></label>
+          <label class="select-field"><span>${fields.choiceLabel}</span><select name="priority">
+            <option value="first" ${entry.priority === "first" ? "selected" : ""}>First</option>
+            <option value="second" ${entry.priority === "second" ? "selected" : ""}>Second</option>
+            <option value="third" ${entry.priority === "third" ? "selected" : ""}>Third</option>
+          </select></label>
+          <label class="text-field full-span"><span>${fields.actionLabel}</span><textarea name="action" rows="3" placeholder="${fields.actionLabel}">${entry.action || ""}</textarea></label>
+        </div>
+      `;
+    }
+    if (quest.questTemplate === "belief_reframe") {
+      return `
+        <div class="quest-form-grid">
+          <label class="text-field full-span"><span>${fields.sourceLabel}</span><textarea name="source" rows="3" placeholder="${fields.sourceLabel}">${entry.source || ""}</textarea></label>
+          <label class="text-field full-span"><span>${fields.reframeLabel}</span><textarea name="reframe" rows="3" placeholder="${fields.reframeLabel}">${entry.reframe || ""}</textarea></label>
+          <label class="text-field full-span"><span>${fields.nextLabel}</span><textarea name="next" rows="3" placeholder="${fields.nextLabel}">${entry.next || ""}</textarea></label>
+        </div>
+      `;
+    }
+    if (quest.questTemplate === "rating_audit") {
+      const ratings = (fields.ratings || ["Area 1", "Area 2", "Area 3", "Area 4"]).map((label, index) => `
+        <label class="range-field">
+          <span>${label}</span>
+          <input type="range" min="1" max="5" value="${entry[`rating${index}`] || 3}" name="rating${index}" />
+          <output>${entry[`rating${index}`] || 3}</output>
+        </label>
+      `).join("");
+      return `
+        <div class="quest-form-grid">
+          ${ratings}
+          <label class="text-field full-span"><span>${fields.weakestLabel}</span><textarea name="weakest" rows="3" placeholder="${fields.weakestLabel}">${entry.weakest || ""}</textarea></label>
+          <label class="text-field full-span"><span>${fields.actionLabel}</span><textarea name="action" rows="3" placeholder="${fields.actionLabel}">${entry.action || ""}</textarea></label>
+        </div>
+      `;
+    }
+    if (quest.questTemplate === "planning_commitment") {
+      return `
+        <div class="quest-form-grid">
+          <label class="text-field full-span"><span>${fields.planLabel}</span><textarea name="plan" rows="3" placeholder="${fields.planLabel}">${entry.plan || ""}</textarea></label>
+          <label class="text-field"><span>${fields.cueLabel}</span><textarea name="cue" rows="3" placeholder="${fields.cueLabel}">${entry.cue || ""}</textarea></label>
+          <label class="text-field"><span>${fields.fallbackLabel}</span><textarea name="fallback" rows="3" placeholder="${fields.fallbackLabel}">${entry.fallback || ""}</textarea></label>
+          <label class="select-field full-span"><span>${fields.confidenceLabel}</span><select name="planConfidence">
+            <option value="1" ${String(entry.planConfidence) === "1" ? "selected" : ""}>Very low</option>
+            <option value="2" ${String(entry.planConfidence) === "2" ? "selected" : ""}>Low</option>
+            <option value="3" ${!entry.planConfidence || String(entry.planConfidence) === "3" ? "selected" : ""}>Medium</option>
+            <option value="4" ${String(entry.planConfidence) === "4" ? "selected" : ""}>High</option>
+            <option value="5" ${String(entry.planConfidence) === "5" ? "selected" : ""}>Very high</option>
+          </select></label>
+        </div>
+      `;
+    }
+    if (quest.questTemplate === "gratitude_connection") {
+      return `
+        <div class="quest-form-grid">
+          <label class="text-field full-span"><span>${fields.targetLabel}</span><textarea name="target" rows="3" placeholder="${fields.targetLabel}">${entry.target || ""}</textarea></label>
+          <label class="text-field full-span"><span>${fields.meaningLabel}</span><textarea name="meaning" rows="3" placeholder="${fields.meaningLabel}">${entry.meaning || ""}</textarea></label>
+          <label class="text-field full-span"><span>${fields.actionLabel}</span><textarea name="action" rows="3" placeholder="${fields.actionLabel}">${entry.action || ""}</textarea></label>
+        </div>
+      `;
+    }
+    return `
+      <div class="quest-form-grid">
+        <label class="text-field full-span"><span>${fields.helpedLabel}</span><textarea name="helpedText" rows="3" placeholder="${fields.helpedLabel}">${entry.helpedText || ""}</textarea></label>
+        <label class="text-field full-span"><span>${fields.hardLabel}</span><textarea name="hardText" rows="3" placeholder="${fields.hardLabel}">${entry.hardText || ""}</textarea></label>
+        <label class="text-field full-span"><span>${fields.changedLabel}</span><textarea name="changedText" rows="3" placeholder="${fields.changedLabel}">${entry.changedText || ""}</textarea></label>
+        <label class="text-field full-span"><span>${fields.askLabel}</span><textarea name="askText" rows="3" placeholder="${fields.askLabel}">${entry.askText || ""}</textarea></label>
+      </div>
+    `;
+  }
+
+  function saveQuestWorkspace(questId, shouldComplete = false) {
+    const quest = byId[questId];
+    if (!quest) {
+      return;
+    }
+    const data = new FormData($("sheet-workspace-form"));
+    const entry = {
+      template: quest.questTemplate,
+      updatedAt: isoToday(),
+      confidence: Number(data.get("confidence") || 3),
+      difficulty: Number(data.get("difficulty") || 3),
+      helped: String(data.get("helped") || "mixed"),
+      reflection: String(data.get("reflection") || "")
+    };
+    for (const [key, value] of data.entries()) {
+      if (!["confidence", "difficulty", "helped", "reflection"].includes(key)) {
+        entry[key] = typeof value === "string" ? value : String(value);
+      }
+    }
+    state.questEntries[questId] = entry;
+    state.questResponses[questId] = {
+      date: entry.updatedAt,
+      confidence: entry.confidence,
+      difficulty: entry.difficulty,
+      benefit: Number(data.get("planConfidence") || data.get("confidence") || 3),
+      helped: entry.helped,
+      reflection: entry.reflection
+    };
+    $("sheet-note-status").textContent = "Quest answers saved locally.";
+    saveState();
+    if (shouldComplete) {
+      completeQuest(questId);
+      closeSheet();
+      return;
+    }
+    render();
+    openQuestSheet(questId);
+    toast("Quest answers saved.");
+  }
+
+  function renderFormsAndReport() {
+    const latestDaily = getLatestDailyLog();
+    const latestWeekly = getLatestWeeklyReview();
+    $("daily-log-status").textContent = latestDaily && latestDaily.date === isoToday() ? "logged today" : "not logged today";
+    $("weekly-review-status").textContent = latestWeekly && latestWeekly.date === isoToday() ? "review saved today" : "not reviewed this week";
+    $("report-status").textContent = state.reportState ? `updated ${state.reportState.updatedAt}` : "live report";
+    $("report-overview").innerHTML = state.reportState.overview.map(([label, value]) => `
+      <article class="stat-card">
+        <span class="stat-label">${label}</span>
+        <strong class="stat-value">${value}</strong>
+      </article>
+    `).join("");
+    renderSessionList("report-trends", state.reportState.trends.map((detail, index) => ({ title: `Trend ${index + 1}`, detail })));
+    renderSessionList("report-points", state.reportState.points.map((detail, index) => ({ title: `Point ${index + 1}`, detail })));
+    if (latestDaily) {
+      $("daily-mood").value = latestDaily.mood;
+      $("daily-stress").value = latestDaily.stress;
+      $("daily-sleep").value = latestDaily.sleep;
+      $("daily-energy").value = latestDaily.energy;
+      $("daily-focus").value = latestDaily.focus;
+      $("daily-medication").value = latestDaily.medication;
+      $("daily-side-effects").value = latestDaily.sideEffects;
+      $("daily-safety").value = latestDaily.safety;
+      $("daily-note").value = latestDaily.note || "";
+    }
+    if (latestWeekly) {
+      $("weekly-topics").value = latestWeekly.topics || "";
+      $("weekly-helped").value = latestWeekly.helped || "";
+      $("weekly-hard").value = latestWeekly.hard || "";
+      $("weekly-changed").value = latestWeekly.changed || "";
+      $("weekly-ask").value = latestWeekly.ask || "";
+    }
+    updateRangeOutputs();
+  }
+
+  function renderAnalyticsSection() {
+    const moodAvg = averageOfLogs("mood");
+    const sleepAvg = averageOfLogs("sleep");
+    const energyAvg = averageOfLogs("energy");
+    const focusAvg = averageOfLogs("focus");
+    const stressAvg = averageOfLogs("stress");
+    const questEntryTrend = questEntrySummary();
+    const preferredDomain = preferredSuccessDomain();
+    $("analytics-status").textContent = state.reportState ? `updated ${state.reportState.updatedAt}` : "live analytics";
+    $("analytics-overview").innerHTML = [
+      ["Mood avg", moodAvg !== null ? moodAvg.toFixed(1) : "No data"],
+      ["Sleep avg", sleepAvg !== null ? sleepAvg.toFixed(1) : "No data"],
+      ["Energy avg", energyAvg !== null ? energyAvg.toFixed(1) : "No data"],
+      ["Quest entries", String(Object.keys(state.questEntries).length)]
+    ].map(([label, value]) => `
+      <article class="stat-card">
+        <span class="stat-label">${label}</span>
+        <strong class="stat-value">${value}</strong>
+      </article>
+    `).join("");
+    renderSessionList("analytics-changes", [
+      { title: "Well-being trend", detail: (getWho5TrendSummary() && getWho5TrendSummary().detail) || "Not enough WHO-5 scans yet for a reliable trend." },
+      { title: "Mood / stress shift", detail: moodAvg !== null && stressAvg !== null ? `Mood averages ${moodAvg.toFixed(1)} and stress averages ${stressAvg.toFixed(1)} across recent daily logs.` : "Not enough mood/stress logs yet." },
+      { title: "Sleep / energy shift", detail: sleepAvg !== null && energyAvg !== null ? `Sleep averages ${sleepAvg.toFixed(1)} and energy averages ${energyAvg.toFixed(1)} across recent daily logs.` : "Not enough sleep/energy logs yet." },
+      { title: "Consistency", detail: `Current streak is ${getCurrentStreak()} days and best streak is ${state.rewards.longestStreak} days.` }
+    ]);
+    renderSessionList("analytics-insights", [
+      { title: "Quest helpfulness", detail: questEntryTrend || "No structured quest-entry pattern yet." },
+      { title: "Medication pattern", detail: medicationSummary() },
+      { title: "Side-effect pattern", detail: sideEffectSummary() },
+      { title: "Route guidance", detail: routeRecommendationSummary() },
+      { title: "Preferred success domain", detail: preferredDomain ? `Repeated quest answers suggest the strongest focus is ${preferredDomain}.` : "No repeated success-domain pattern yet." },
+      { title: "Focus change", detail: focusAvg !== null ? `Recent focus average is ${focusAvg.toFixed(1)} out of 5.` : "Not enough focus logs yet." }
+    ]);
+  }
+
   function renderSources() {
     const evidenceCount = DATA.sources.filter((source) => source.kind === "evidence").length;
     const courseCount = DATA.sources.filter((source) => source.kind === "course").length;
@@ -977,6 +1328,7 @@
     if (!quest) {
       return;
     }
+    const entry = state.questEntries[quest.id] || {};
     session.activeQuestId = questId;
     saveSession();
     $("sheet-program").textContent = `${DATA.programs[quest.lane].school} | ${chapterById[quest.chapter].title}`;
@@ -990,14 +1342,19 @@
     $("sheet-why").textContent = quest.why;
     $("sheet-steps").innerHTML = quest.steps.map((step) => `<li>${step}</li>`).join("");
     $("sheet-prompts").innerHTML = quest.prompts.map((prompt) => `<li>${prompt}</li>`).join("");
-    $("sheet-note").value = state.notes[quest.id] || "";
-    $("sheet-note-status").textContent = state.notes[quest.id] ? "Note saved locally." : "Notes stay on this device.";
+    $("sheet-workspace-fields").innerHTML = renderQuestWorkspaceFields(quest, entry);
+    $("sheet-confidence").value = String(entry.confidence || 3);
+    $("sheet-difficulty").value = String(entry.difficulty || 3);
+    $("sheet-helped").value = entry.helped || "yes";
+    $("sheet-note").value = entry.reflection || "";
+    $("sheet-note-status").textContent = entry.updatedAt ? `Saved ${entry.updatedAt}` : "Answer the quest here.";
     $("sheet-source-mode").textContent = quest.sourceBasis;
     $("sheet-inference").textContent = quest.evidenceTag;
     $("sheet-sources").innerHTML = quest.sources.map((id) => {
       const source = sourcesById[id];
       return `<a class="linked-source" href="${source.url}" target="_blank" rel="noreferrer"><strong>${source.title}</strong><span>${source.publisher}</span></a>`;
     }).join("");
+    $("sheet-workspace-form").dataset.questId = quest.id;
     $("sheet-complete").dataset.completeQuest = quest.id;
     $("sheet-next").dataset.nextQuest = quest.id;
     $("exercise-sheet").classList.add("open");
@@ -1075,6 +1432,34 @@
     };
   }
 
+  function serializeQuestResponse(form) {
+    const data = new FormData(form);
+    return {
+      date: isoToday(),
+      confidence: Number(data.get("confidence") || 3),
+      difficulty: Number(data.get("difficulty") || 3),
+      benefit: Number(data.get("benefit") || 3),
+      helped: String(data.get("helped") || "mixed"),
+      reflection: String(data.get("reflection") || "")
+    };
+  }
+
+  function updateRangeOutputs() {
+    [
+      ["daily-mood", "daily-mood-output"],
+      ["daily-stress", "daily-stress-output"],
+      ["daily-sleep", "daily-sleep-output"],
+      ["daily-energy", "daily-energy-output"],
+      ["daily-focus", "daily-focus-output"]
+    ].forEach(([inputId, outputId]) => {
+      const input = $(inputId);
+      const output = $(outputId);
+      if (input && output) {
+        output.textContent = input.value;
+      }
+    });
+  }
+
   function bindEvents() {
     document.querySelectorAll(".nav-button").forEach((button) => {
       button.addEventListener("click", () => setView(button.dataset.viewTarget));
@@ -1135,6 +1520,56 @@
       toast("Scan saved. The board has updated your route.");
     });
 
+    $("daily-log-form").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const data = new FormData(event.currentTarget);
+      const entry = {
+        date: isoToday(),
+        mood: Number(data.get("mood") || 3),
+        stress: Number(data.get("stress") || 3),
+        sleep: Number(data.get("sleep") || 3),
+        energy: Number(data.get("energy") || 3),
+        focus: Number(data.get("focus") || 3),
+        medication: String(data.get("medication") || "na"),
+        sideEffects: String(data.get("sideEffects") || "none"),
+        safety: String(data.get("safety") || "safe"),
+        note: String(data.get("note") || "")
+      };
+      state.dailyLogs = state.dailyLogs.filter((item) => item.date !== entry.date).concat(entry);
+      state.campaign.timeline.unshift({
+        type: "daily-log",
+        date: entry.date,
+        title: "Daily log saved",
+        detail: `Mood ${entry.mood}, energy ${entry.energy}, sleep ${entry.sleep}.`
+      });
+      saveState();
+      render();
+      toast("Daily log saved.");
+    });
+
+    $("weekly-review-form").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const data = new FormData(event.currentTarget);
+      const entry = {
+        date: isoToday(),
+        topics: String(data.get("topics") || ""),
+        helped: String(data.get("helped") || ""),
+        hard: String(data.get("hard") || ""),
+        changed: String(data.get("changed") || ""),
+        ask: String(data.get("ask") || "")
+      };
+      state.weeklyReviews = state.weeklyReviews.filter((item) => item.date !== entry.date).concat(entry);
+      state.campaign.timeline.unshift({
+        type: "weekly-review",
+        date: entry.date,
+        title: "Weekly review saved",
+        detail: "The app has more context for your next route and report."
+      });
+      saveState();
+      render();
+      toast("Weekly review saved.");
+    });
+
     document.addEventListener("click", (event) => {
       const openButton = event.target.closest("[data-open-quest]");
       if (openButton) {
@@ -1167,6 +1602,12 @@
       }
     });
 
+    $("sheet-workspace-form").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const questId = event.currentTarget.dataset.questId;
+      saveQuestWorkspace(questId, false);
+    });
+
     $("close-sheet").addEventListener("click", closeSheet);
     $("sheet-backdrop").addEventListener("click", closeSheet);
     $("sheet-archive").addEventListener("click", () => {
@@ -1175,15 +1616,10 @@
     });
     $("sheet-next").addEventListener("click", () => nextQuestFrom($("sheet-next").dataset.nextQuest));
     $("sheet-complete").addEventListener("click", () => {
-      completeQuest($("sheet-complete").dataset.completeQuest);
-      closeSheet();
+      saveQuestWorkspace($("sheet-complete").dataset.completeQuest, true);
     });
     $("sheet-note").addEventListener("input", (event) => {
-      if (session.activeQuestId) {
-        state.notes[session.activeQuestId] = event.target.value;
-        $("sheet-note-status").textContent = "Note saved locally.";
-        saveState();
-      }
+      $("sheet-note-status").textContent = "Unsaved changes in workspace.";
     });
 
     $("search-input").addEventListener("input", (event) => {
@@ -1200,12 +1636,51 @@
       saveState();
     });
 
+    [
+      "daily-mood",
+      "daily-stress",
+      "daily-sleep",
+      "daily-energy",
+      "daily-focus"
+    ].forEach((id) => {
+      const input = $(id);
+      if (input) {
+        input.addEventListener("input", updateRangeOutputs);
+      }
+    });
+
     $("export-data").addEventListener("click", () => {
       const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
       link.download = "being-command-board-export.json";
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+
+    $("export-report").addEventListener("click", () => {
+      state.reportState = buildReportState();
+      const lines = [
+        "Warm Neon Life-Map Session Report",
+        `Generated: ${state.reportState.updatedAt}`,
+        "",
+        "Overview:",
+        ...state.reportState.overview.map(([label, value]) => `- ${label}: ${value}`),
+        "",
+        "Trend Summary:",
+        ...state.reportState.trends.map((line) => `- ${line}`),
+        "",
+        "Session Talking Points:",
+        ...state.reportState.points.map((line) => `- ${line}`),
+        "",
+        `Personal note: ${state.sessionPrepNote || "None"}`
+      ];
+      const blob = new Blob([lines.join("\n")], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "being-session-report.txt";
       link.click();
       URL.revokeObjectURL(url);
     });
@@ -1243,5 +1718,6 @@
   ensureCampaign();
   buildFilters();
   bindEvents();
+  updateRangeOutputs();
   render();
 })();

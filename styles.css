@@ -871,8 +871,15 @@ textarea:focus-visible {
   min-width: 0;
 }
 
+.select-field {
+  display: grid;
+  gap: 0.58rem;
+  min-width: 0;
+}
+
 .range-field span,
-.text-field span {
+.text-field span,
+.select-field span {
   font-weight: 700;
   line-height: 1.35;
 }
@@ -888,6 +895,7 @@ input[type="range"] {
 }
 
 input[type="search"],
+select,
 textarea {
   width: 100%;
   padding: 1rem 1.05rem;
@@ -1382,6 +1390,15 @@ body[data-theme="light"] .toast {
   .checkin-form,
   .diagnostic-form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .daily-form,
+  .quest-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sheet-workspace-meta {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .exercise-grid,
@@ -1920,6 +1937,34 @@ body[data-theme="light"] .toast {
   line-height: 1.5;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.daily-form,
+.quest-form-grid {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.quest-response-form {
+  display: grid;
+  gap: 0.95rem;
+  padding-top: 0.15rem;
+}
+
+.sheet-workspace-form,
+.sheet-workspace-fields,
+.sheet-workspace-meta {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.sheet-workspace-form {
+  margin-top: 0.35rem;
+}
+
+.mission-brief + .stats-grid,
+.session-grid + .text-field {
+  margin-top: 1rem;
 }
 
 .likert-grid {

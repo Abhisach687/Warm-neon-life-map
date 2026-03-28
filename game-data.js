@@ -914,6 +914,210 @@ window.BEING_DATA = (() => {
     }
   ];
 
+  const questTemplateMap = {
+    "ignite-values-scan": {
+      questTemplate: "triple_reflection",
+      questFields: {
+        firstLabel: "Success at work",
+        secondLabel: "Success in career",
+        thirdLabel: "Success in wider life",
+        choiceLabel: "Which one feels most alive right now?",
+        actionLabel: "One behavior this week that fits that definition"
+      }
+    },
+    "success-define-success": {
+      questTemplate: "triple_reflection",
+      questFields: {
+        firstLabel: "Success at work",
+        secondLabel: "Success in career",
+        thirdLabel: "Success in wider life",
+        choiceLabel: "Which one feels most alive right now?",
+        actionLabel: "One behavior this week that fits that definition"
+      }
+    },
+    "success-myth-audit": {
+      questTemplate: "belief_reframe",
+      questFields: {
+        sourceLabel: "Limiting or inherited belief",
+        reframeLabel: "Evidence-friendly reframe",
+        nextLabel: "One experiment to test the new belief"
+      }
+    },
+    "ignite-growth-reframe": {
+      questTemplate: "belief_reframe",
+      questFields: {
+        sourceLabel: "Stuck story",
+        reframeLabel: "Growth-minded reframe",
+        nextLabel: "Next practice move"
+      }
+    },
+    "success-growth-reframe": {
+      questTemplate: "belief_reframe",
+      questFields: {
+        sourceLabel: "Stuck story",
+        reframeLabel: "Growth-minded reframe",
+        nextLabel: "Next practice move"
+      }
+    },
+    "ignite-self-eval": {
+      questTemplate: "rating_audit",
+      questFields: {
+        ratings: ["Self-worth", "Confidence", "Emotional steadiness", "Sense of control"],
+        weakestLabel: "Lowest area right now",
+        actionLabel: "One proof statement or strengthening move"
+      }
+    },
+    "success-core-self-evaluations": {
+      questTemplate: "rating_audit",
+      questFields: {
+        ratings: ["Self-worth", "Confidence", "Emotional steadiness", "Sense of control"],
+        weakestLabel: "Lowest area right now",
+        actionLabel: "One proof statement or strengthening move"
+      }
+    },
+    "ignite-small-win": {
+      questTemplate: "planning_commitment",
+      questFields: {
+        planLabel: "Tiny win to attempt",
+        cueLabel: "When / cue",
+        fallbackLabel: "Fallback if the day gets hard",
+        confidenceLabel: "How confident do you feel?"
+      }
+    },
+    "ignite-motivation-interview": {
+      questTemplate: "review_template",
+      questFields: {
+        helpedLabel: "Why this change matters",
+        hardLabel: "What makes it hard",
+        changedLabel: "What you still want despite that",
+        askLabel: "What support would help?"
+      }
+    },
+    "ignite-implementation-seed": {
+      questTemplate: "planning_commitment",
+      questFields: {
+        planLabel: "If-then plan",
+        cueLabel: "Reliable cue",
+        fallbackLabel: "Fallback version",
+        confidenceLabel: "How confident do you feel?"
+      }
+    },
+    "stabilize-restore-audit": {
+      questTemplate: "rating_audit",
+      questFields: {
+        ratings: ["Sleep", "Movement", "Calm", "Nourishment"],
+        weakestLabel: "Lowest signal",
+        actionLabel: "Most compassionate recovery move"
+      }
+    },
+    "stabilize-situation-support": {
+      questTemplate: "planning_commitment",
+      questFields: {
+        planLabel: "Supportive change to environment",
+        cueLabel: "Where it will live",
+        fallbackLabel: "Smallest version",
+        confidenceLabel: "How confident do you feel?"
+      }
+    },
+    "stabilize-calm-window": {
+      questTemplate: "planning_commitment",
+      questFields: {
+        planLabel: "Calm window ritual",
+        cueLabel: "When it will happen",
+        fallbackLabel: "Shortest version you can still do",
+        confidenceLabel: "How confident do you feel?"
+      }
+    },
+    "momentum-smart-goal": {
+      questTemplate: "planning_commitment",
+      questFields: {
+        planLabel: "SMART goal",
+        cueLabel: "When / how you will track it",
+        fallbackLabel: "Recovery version if you miss a day",
+        confidenceLabel: "How confident do you feel?"
+      }
+    },
+    "momentum-trigger-design": {
+      questTemplate: "planning_commitment",
+      questFields: {
+        planLabel: "Behavior to repeat",
+        cueLabel: "Existing cue",
+        fallbackLabel: "Smallest version",
+        confidenceLabel: "How confident do you feel?"
+      }
+    },
+    "momentum-relapse-plan": {
+      questTemplate: "planning_commitment",
+      questFields: {
+        planLabel: "Most likely interruption",
+        cueLabel: "Recovery cue",
+        fallbackLabel: "Fast return move",
+        confidenceLabel: "How confident do you feel?"
+      }
+    },
+    "ignite-gratitude-capsule": {
+      questTemplate: "gratitude_connection",
+      questFields: {
+        targetLabel: "Person / moment / support",
+        meaningLabel: "Why it mattered",
+        actionLabel: "How you will honor or revisit it"
+      }
+    },
+    "ignite-savoring-burst": {
+      questTemplate: "gratitude_connection",
+      questFields: {
+        targetLabel: "Bright moment",
+        meaningLabel: "What made it feel alive",
+        actionLabel: "How to create or notice it again"
+      }
+    },
+    "ignite-connection-reachout": {
+      questTemplate: "gratitude_connection",
+      questFields: {
+        targetLabel: "Person to reach out to",
+        meaningLabel: "What you want to say",
+        actionLabel: "How / when you will send it"
+      }
+    },
+    "meaning-kindness-mission": {
+      questTemplate: "gratitude_connection",
+      questFields: {
+        targetLabel: "Kindness target",
+        meaningLabel: "Why this matters",
+        actionLabel: "Kindness action"
+      }
+    },
+    "meaning-network-map": {
+      questTemplate: "triple_reflection",
+      questFields: {
+        firstLabel: "Supporters",
+        secondLabel: "Teachers",
+        thirdLabel: "People to know better",
+        choiceLabel: "Which relationship needs attention first?",
+        actionLabel: "One action to strengthen it"
+      }
+    },
+    "meaning-gratitude-visit": {
+      questTemplate: "gratitude_connection",
+      questFields: {
+        targetLabel: "Person to thank",
+        meaningLabel: "What they gave you",
+        actionLabel: "How you will deliver the message"
+      }
+    }
+  };
+
+  const enrichedQuests = quests.map((quest) => ({
+    ...quest,
+    questTemplate: (questTemplateMap[quest.id] && questTemplateMap[quest.id].questTemplate) || "review_template",
+    questFields: (questTemplateMap[quest.id] && questTemplateMap[quest.id].questFields) || {
+      helpedLabel: "What stands out from this quest?",
+      hardLabel: "What feels difficult or unclear?",
+      changedLabel: "What might you try next?",
+      askLabel: "What support would help?"
+    }
+  }));
+
   return {
     sources,
     programs,
@@ -921,6 +1125,6 @@ window.BEING_DATA = (() => {
     diagnosticSurvey,
     chapters,
     chains,
-    quests
+    quests: enrichedQuests
   };
 })();
