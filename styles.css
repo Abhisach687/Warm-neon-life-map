@@ -966,9 +966,9 @@ textarea {
 }
 
 .sticky-card {
-  position: sticky;
-  top: 5.8rem;
-  z-index: 18;
+  position: static;
+  top: auto;
+  z-index: auto;
 }
 
 .library-summary {
@@ -1482,6 +1482,64 @@ body[data-theme="light"] .toast {
 .stat-chip strong,
 .stat-value {
   font-size: 1.1rem;
+}
+
+.stats-grid {
+  align-items: start;
+}
+
+.stat-card {
+  display: grid;
+  align-content: start;
+  gap: 0.9rem;
+  min-height: 7.5rem;
+  padding: 1.25rem 1.15rem 1.25rem;
+}
+
+.stat-card .stat-label,
+.stat-card span {
+  margin: 0;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.stat-card .stat-value,
+.stat-card strong {
+  margin: 0;
+  line-height: 1.05;
+}
+
+#top-stats {
+  margin-top: 1rem;
+}
+
+#insight-stats,
+#source-summary {
+  margin-top: 1.35rem;
+}
+
+#archive-summary,
+#diagnostic-summary,
+.card > .muted {
+  margin-top: 0.55rem;
+}
+
+.card > h2 + .stats-grid,
+.card > h2 + .program-grid,
+.card > h2 + .bar-list {
+  margin-top: 1.3rem;
+}
+
+.card > p.muted + .stats-grid {
+  margin-top: 1.2rem;
+}
+
+#program-bars,
+#diagnostic-history,
+#achievement-grid,
+#sources-list,
+#library-results {
+  margin-top: 0.35rem;
 }
 
 .companion-panel {

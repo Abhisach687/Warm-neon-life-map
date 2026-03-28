@@ -1,0 +1,46 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="64" y1="48" x2="448" y2="464" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0A1720"/>
+      <stop offset="1" stop-color="#102834"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="132" y1="124" x2="378" y2="388" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7AF3D3"/>
+      <stop offset="1" stop-color="#FFB56D"/>
+    </linearGradient>
+    <radialGradient id="core" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(256 252) rotate(90) scale(150)">
+      <stop stop-color="#1C3947"/>
+      <stop offset="1" stop-color="#0E1B22"/>
+    </radialGradient>
+    <filter id="softGlow" x="88" y="88" width="336" height="336" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+      <feGaussianBlur stdDeviation="12" result="effect1_foregroundBlur"/>
+    </filter>
+  </defs>
+
+  <rect x="40" y="40" width="432" height="432" rx="112" fill="url(#bg)"/>
+  <rect x="40" y="40" width="432" height="432" rx="112" stroke="#FFFFFF" stroke-opacity="0.18" stroke-width="2"/>
+
+  <g filter="url(#softGlow)">
+    <circle cx="256" cy="256" r="146" fill="url(#core)" stroke="url(#glow)" stroke-width="10"/>
+    <circle cx="256" cy="256" r="105" stroke="#7AF3D3" stroke-opacity="0.7" stroke-width="6"/>
+    <circle cx="256" cy="256" r="66" stroke="#FFB56D" stroke-opacity="0.85" stroke-width="6"/>
+  </g>
+
+  <path d="M256 132L283 206L358 210L299 256L320 331L256 287L192 331L213 256L154 210L229 206L256 132Z" fill="url(#glow)" fill-opacity="0.18"/>
+  <path d="M256 169L272 214L319 216L282 244L295 289L256 263L217 289L230 244L193 216L240 214L256 169Z" stroke="url(#glow)" stroke-width="10" stroke-linejoin="round"/>
+
+  <path d="M256 214C232.252 214 213 233.252 213 257C213 280.748 232.252 300 256 300C279.748 300 299 280.748 299 257C299 233.252 279.748 214 256 214Z" fill="#0D1820" stroke="#7AF3D3" stroke-width="8"/>
+  <path d="M256 228C240.536 228 228 240.536 228 256C228 271.464 240.536 284 256 284C271.464 284 284 271.464 284 256C284 240.536 271.464 228 256 228Z" fill="url(#glow)" fill-opacity="0.88"/>
+
+  <circle cx="156" cy="160" r="10" fill="#7AF3D3"/>
+  <circle cx="356" cy="166" r="10" fill="#FFB56D"/>
+  <circle cx="344" cy="348" r="10" fill="#7AF3D3"/>
+  <circle cx="170" cy="342" r="10" fill="#FFB56D"/>
+
+  <path d="M156 160L228 214" stroke="#7AF3D3" stroke-opacity="0.7" stroke-width="5" stroke-linecap="round"/>
+  <path d="M356 166L284 214" stroke="#FFB56D" stroke-opacity="0.75" stroke-width="5" stroke-linecap="round"/>
+  <path d="M344 348L284 296" stroke="#7AF3D3" stroke-opacity="0.7" stroke-width="5" stroke-linecap="round"/>
+  <path d="M170 342L228 296" stroke="#FFB56D" stroke-opacity="0.75" stroke-width="5" stroke-linecap="round"/>
+</svg>

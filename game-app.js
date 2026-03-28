@@ -3,6 +3,7 @@
   const STORAGE_KEY = "being-command-board-state-v1";
   const SESSION_KEY = "being-command-board-session-v1";
   const views = ["play", "archive", "map", "progress", "sources"];
+  const queryView = new URLSearchParams(window.location.search).get("view");
 
   const $ = (id) => document.getElementById(id);
   const byId = Object.fromEntries(DATA.quests.map((quest) => [quest.id, quest]));
@@ -755,7 +756,8 @@
     renderMapProgress();
     renderProgress();
     renderSources();
-    setView(state.view || session.lastView || "play");
+    const initialView = views.includes(queryView) ? queryView : (state.view || session.lastView || "play");
+    setView(initialView);
   }
 
   function readDiagnosticForm(form) {
