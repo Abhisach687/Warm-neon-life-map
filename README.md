@@ -4,6 +4,31 @@ Live app: https://abhisach687.github.io/Warm-neon-life-map/
 
 Warm Neon Life-Map is a mobile-first self-improvement game with a cozy cyberpunk style.
 
+## User story
+
+A user opens the app and lands on `Play`.
+
+They read the `Start Here` block to see the one best next step instead of choosing from everything at once.
+
+If it is their first time, they run the weekly scan so the app can decide what kind of route fits them best.
+
+Then they open the current quest, do the exercise, and mark it complete.
+
+After that, the app updates the next quest, XP, rewards, streaks, and progress automatically.
+
+If they want to understand the bigger picture, they open:
+
+- `Archive` to browse all quests
+- `Map` to see their chapter path and upcoming milestones
+- `Review` to see progress, scan history, and the therapy / psychiatric session summary
+- `Sources` to understand where the exercises and evidence came from
+
+Before a therapy or psychiatric appointment, they open `Review` and read the section:
+
+`Things I have to tell during psychiatric session`
+
+That gives them a quick summary of what changed, what feels hard, what seems to help, and what may be worth bringing up.
+
 ## What this app does
 
 The app guides you through one next step at a time.
@@ -79,6 +104,7 @@ That section shows:
 
 - your current focus
 - recent scan signals
+- repeated low / improving / dropping WHO-5 patterns when enough scans exist
 - what seems to be helping
 - what feels hard
 - recent changes

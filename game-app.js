@@ -122,6 +122,42 @@
     return state.diagnostics[state.diagnostics.length - 1] || null;
   }
 
+  function getRecentDiagnostics(limit = 3) {
+    return state.diagnostics.slice(-limit);
+  }
+
+  function getWho5TrendSummary() {
+    const recent = getRecentDiagnostics(3);
+    if (recent.length < 2) {
+      return null;
+    }
+    const first = recent[0].who5Score;
+    const last = recent[recent.length - 1].who5Score;
+    const delta = last - first;
+    if (recent.every((item) => item.who5Score < 44)) {
+      return {
+        label: "repeatedly low",
+        detail: "The last few WHO-5 signals have stayed low, which may be worth discussing as an ongoing pattern."
+      };
+    }
+    if (delta >= 8) {
+      return {
+        label: "improving",
+        detail: `The WHO-5 trend has improved by about ${delta} points across recent scans.`
+      };
+    }
+    if (delta <= -8) {
+      return {
+        label: "dropping",
+        detail: `The WHO-5 trend has dropped by about ${Math.abs(delta)} points across recent scans.`
+      };
+    }
+    return {
+      label: "steady",
+      detail: "The recent WHO-5 pattern looks fairly steady rather than sharply changing."
+    };
+  }
+
   function getCurrentStreak() {
     const days = Array.from(new Set(state.campaign.timeline.map((item) => item.date))).sort();
     if (!days.length) {
@@ -368,6 +404,7 @@
     const quest = currentQuest();
     const chain = currentChain();
     const laneLabel = DATA.programs[state.campaign.laneRecommendation].name;
+    const trend = getWho5TrendSummary();
     const intensityText = {
       gentle: "Keep the pace gentle. Recovery counts as progress here.",
       steady: "A steady rhythm is enough. You do not need dramatic momentum.",
@@ -380,6 +417,9 @@
     }
     if (state.campaign.stabilizationFlag) {
       routeText += " The system also noticed a restoration need, so it is protecting you from an overly intense route.";
+    }
+    if (trend) {
+      routeText += ` Your recent well-being trend looks ${trend.label}.`;
     }
     return `${routeText} ${intensityText}`;
   }
@@ -593,6 +633,7 @@
   function renderArchive() {
     const search = state.filters.search.trim().toLowerCase();
     $("search-input").value = state.filters.search;
+    const current = currentQuest();
     const results = DATA.quests.filter((quest) => {
       const text = [
         quest.title,
@@ -609,7 +650,10 @@
       return programMatch && statusMatch && searchMatch;
     });
 
-    $("archive-summary").textContent = `${results.length} quests visible. The campaign stays linear, but the archive remains readable for transparency.`;
+    const unlockedCount = DATA.quests.filter((quest) => questStatus(quest.id) === "unlocked" || questStatus(quest.id) === "current").length;
+    $("archive-summary").textContent = current
+      ? `${results.length} quests visible. Right now the app wants you to focus on "${current.title}". ${unlockedCount} quests are currently open or current, and the rest stay visible for transparency.`
+      : `${results.length} quests visible. The archive shows the whole system, but the campaign still recommends one step at a time.`;
     $("library-results").innerHTML = results.map((quest) => {
       const status = questStatus(quest.id);
       return `
@@ -639,7 +683,28 @@
   }
 
   function renderMapProgress() {
-    $("campaign-progress").innerHTML = DATA.chapters.map((chapter) => {
+    const completedChapters = DATA.chapters.filter((chapter) =>
+      DATA.chains
+        .filter((chain) => chain.chapter === chapter.id)
+        .every((chain) => state.campaign.completedChainIds.includes(chain.id))
+    ).length;
+    const nextChain = currentChain();
+    $("campaign-progress").innerHTML = [
+      `
+      <article class="program-card">
+        <span class="eyebrow">Route Health</span>
+        <h3>Current campaign state</h3>
+        <p class="muted">You are in ${chapterById[state.campaign.activeChapter].title}, with ${completedChapters}/${DATA.chapters.length} chapters fully completed.</p>
+      </article>
+      `,
+      `
+      <article class="program-card">
+        <span class="eyebrow">Next Milestone</span>
+        <h3>${nextChain.artifact}</h3>
+        <p class="muted">Finish ${nextChain.title} to unlock the next artifact and keep the route moving.</p>
+      </article>
+      `
+    ].join("") + DATA.chapters.map((chapter) => {
       const chapterChains = DATA.chains.filter((chain) => chain.chapter === chapter.id);
       const completed = chapterChains.filter((chain) => state.campaign.completedChainIds.includes(chain.id)).length;
       return `
@@ -716,6 +781,7 @@
     const recentMemories = state.rewards.memories.slice(0, 2);
     const latestArtifact = state.rewards.artifacts[0] || null;
     const nextReward = currentChain();
+    const trend = getWho5TrendSummary();
     const recentNotes = Object.entries(state.notes)
       .filter(([, value]) => value && value.trim())
       .slice(-2)
@@ -736,6 +802,10 @@
       {
         title: "Current chapter",
         detail: chapterById[state.campaign.activeChapter].summary
+      },
+      {
+        title: "Next unlocked reward",
+        detail: current ? `If I finish this chain, I unlock ${nextReward.artifact} and the ${nextReward.badge} badge.` : "I may need a new reward target for the next season."
       }
     ];
     const signalItems = latest ? [
@@ -743,6 +813,10 @@
         title: "Weekly scan result",
         detail: `The app routed me toward ${DATA.programs[latest.laneRecommendation].name} with ${latest.recommendedIntensity} intensity.`
       },
+      ...(trend ? [{
+        title: "WHO-5 trend",
+        detail: trend.detail
+      }] : []),
       {
         title: "Restoration signal",
         detail: latest.stabilizationFlag
@@ -881,7 +955,14 @@
         <strong class="stat-value">Meta first</strong>
       </article>
     `;
-    $("sources-list").innerHTML = DATA.sources.map((source) => `
+    const evidenceIntro = `
+      <article class="source-card">
+        <span class="badge">why this matters</span>
+        <h3>How the app decides what to guide you toward</h3>
+        <p class="muted">Meta-analyses and systematic reviews get priority for routing, pacing, self-monitoring, and gamification decisions. Public course pages ground the actual quest themes.</p>
+      </article>
+    `;
+    $("sources-list").innerHTML = evidenceIntro + DATA.sources.map((source) => `
       <a class="source-card" href="${source.url}" target="_blank" rel="noreferrer">
         <span class="badge">${source.kind}</span>
         <h3>${source.title}</h3>
