@@ -13,6 +13,7 @@ The app guides you through one next step at a time.
 - The app unlocks the next step.
 - A weekly scan helps the app decide what you should focus on next.
 - Your progress is saved on your device.
+- You earn XP, badges, artifacts, memories, and streak progress as you move.
 
 ## Where to tap
 
@@ -21,16 +22,17 @@ The app has 5 main tabs:
 - `Play`: your main screen. Start here.
 - `Archive`: all quests in one place.
 - `Map`: your chapter path and timeline.
-- `Progress`: your progress, scan history, and psychiatrist-session review page.
+- `Review`: your progress, scan history, and psychiatrist-session review page.
 - `Sources`: where the exercises and evidence came from.
 
 ## How to use it
 
 1. Open `Play`.
-2. Run the weekly scan if it is your first time.
-3. Open the current quest.
-4. Complete the quest.
-5. Come back later and continue from the next guided step.
+2. Read the `Start Here` block.
+3. Run the weekly scan if it is your first time.
+4. Open the current quest.
+5. Complete the quest.
+6. Come back later and continue from the next guided step.
 
 ## Weekly scan
 
@@ -56,6 +58,7 @@ The app tracks:
 - completed quests
 - completed chains
 - XP and level
+- streak progress
 - badges
 - artifacts
 - companion memories
@@ -66,7 +69,7 @@ Your data is saved in the browser on your device.
 
 ## If you want to show progress to your therapist or psychiatrist
 
-Go to the `Progress` tab.
+Go to the `Review` tab.
 
 At the top, there is a section called:
 
@@ -80,7 +83,10 @@ That section shows:
 - what feels hard
 - recent changes
 - suggested things to bring up
+- consistency signals and recent wins
 - your own personal note
+
+This section is built from your saved scans, quest completions, streaks, memories, and notes.
 
 ## Run locally
 

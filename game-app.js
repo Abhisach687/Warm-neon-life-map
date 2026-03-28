@@ -6,6 +6,7 @@
   const queryView = new URLSearchParams(window.location.search).get("view");
 
   const $ = (id) => document.getElementById(id);
+  const levelTitles = ["Signal Scout", "Neon Walker", "Route Keeper", "Archive Builder", "Story Pilot", "Pattern Reader"];
   const byId = Object.fromEntries(DATA.quests.map((quest) => [quest.id, quest]));
   const chainById = Object.fromEntries(DATA.chains.map((chain) => [chain.id, chain]));
   const chapterById = Object.fromEntries(DATA.chapters.map((chapter) => [chapter.id, chapter]));
@@ -40,6 +41,7 @@
     rewards: {
       xp: 0,
       level: 1,
+      longestStreak: 0,
       artifacts: [],
       memories: [],
       badges: []
@@ -118,6 +120,35 @@
 
   function getLatestDiagnostic() {
     return state.diagnostics[state.diagnostics.length - 1] || null;
+  }
+
+  function getCurrentStreak() {
+    const days = Array.from(new Set(state.campaign.timeline.map((item) => item.date))).sort();
+    if (!days.length) {
+      return 0;
+    }
+    let streak = 0;
+    let cursor = new Date();
+    while (true) {
+      const iso = cursor.toISOString().slice(0, 10);
+      if (days.includes(iso)) {
+        streak += 1;
+        cursor.setDate(cursor.getDate() - 1);
+        continue;
+      }
+      break;
+    }
+    return streak;
+  }
+
+  function chapterProgressPercent() {
+    const activeChainId = state.campaign.activeChainId;
+    if (!activeChainId) {
+      return 100;
+    }
+    const questList = questsForChain(activeChainId);
+    const done = questList.filter((quest) => state.campaign.completedQuestIds.includes(quest.id)).length;
+    return ((done + 1) / Math.max(questList.length, 1)) * 100;
   }
 
   function buildCampaignPath(diag) {
@@ -252,6 +283,7 @@
       state.campaign.completedQuestIds.push(questId);
       state.rewards.xp += quest.rewardPayload.xp || 0;
       state.rewards.level = levelForXp(state.rewards.xp);
+      state.rewards.longestStreak = Math.max(state.rewards.longestStreak, getCurrentStreak());
       if (quest.rewardPayload.memory) {
         state.rewards.memories.unshift({
           title: quest.title,
@@ -354,7 +386,8 @@
 
   function renderHero() {
     ensureCampaign();
-    $("top-player-chip").innerHTML = `<strong>Level ${state.rewards.level} navigator</strong><span>${state.campaign.completedQuestIds.length} quests logged</span>`;
+    const title = levelTitles[Math.min(state.rewards.level - 1, levelTitles.length - 1)];
+    $("top-player-chip").innerHTML = `<strong>${title}</strong><span>Level ${state.rewards.level} | ${state.campaign.completedQuestIds.length} quests logged</span>`;
     $("hero-level").textContent = `Lv ${state.rewards.level}`;
     $("xp-caption").textContent = `${state.rewards.xp} XP banked`;
     $("xp-next").textContent = `Next level in ${120 - xpIntoLevel(state.rewards.xp)} XP`;
@@ -362,15 +395,16 @@
     $("hero-highlights").innerHTML = [
       `<span class="pill">Opening: ${chapterById[state.campaign.openingChapter].title}</span>`,
       `<span class="pill">Lane: ${DATA.programs[state.campaign.laneRecommendation].label}</span>`,
-      `<span class="pill">Intensity: ${state.campaign.recommendedIntensity}</span>`
+      `<span class="pill">Intensity: ${state.campaign.recommendedIntensity}</span>`,
+      `<span class="pill">Streak: ${getCurrentStreak()} day${getCurrentStreak() === 1 ? "" : "s"}</span>`
     ].join("");
   }
 
   function renderTopStats() {
     const latest = getLatestDiagnostic();
     const stats = [
-      ["Active chain", currentChain().title],
-      ["Current quest", currentQuest() ? currentQuest().title : "Campaign complete"],
+      ["Quest streak", `${getCurrentStreak()} days`],
+      ["Next reward", currentChain().artifact],
       ["WHO-5 signal", latest ? `${latest.who5Score}/100` : "Not scanned yet"],
       ["Artifacts", String(state.rewards.artifacts.length)]
     ];
@@ -384,6 +418,7 @@
 
   function renderCampaignState() {
     $("campaign-status-badge").textContent = state.campaign.stabilizationFlag ? "stabilize gently" : "guided route";
+    $("chapter-progress-fill").style.width = `${Math.min(chapterProgressPercent(), 100)}%`;
     $("active-chapter-strip").innerHTML = DATA.chapters.map((chapter) => {
       const active = chapter.id === state.campaign.activeChapter;
       const done = state.campaign.completedChainIds.some((chainId) => chainById[chainId].chapter === chapter.id);
@@ -426,6 +461,35 @@
         </div>
       </article>
     `;
+  }
+
+  function renderMissionBrief() {
+    const quest = currentQuest();
+    const chain = currentChain();
+    const latest = getLatestDiagnostic();
+    const streak = getCurrentStreak();
+    $("mission-urgency").textContent = latest ? `${state.campaign.recommendedIntensity} pace` : "origin scan";
+    $("mission-brief").innerHTML = quest ? `
+      <article class="mission-step mission-step--primary">
+        <span class="eyebrow">Do this next</span>
+        <h4>${quest.title}</h4>
+        <p>${quest.summary}</p>
+      </article>
+      <article class="mission-step">
+        <span class="eyebrow">Why now</span>
+        <p>${latest
+          ? `Your latest scan pointed toward ${DATA.programs[state.campaign.laneRecommendation].name}, so this quest is the cleanest next move.`
+          : `This is the opening step in ${chain.title}, the first guided chain in your campaign.`}</p>
+      </article>
+      <article class="mission-step">
+        <span class="eyebrow">Reward on deck</span>
+        <p>Finish this chain to unlock <strong>${chain.artifact}</strong> and the <strong>${chain.badge}</strong> badge.</p>
+      </article>
+      <article class="mission-step">
+        <span class="eyebrow">Momentum signal</span>
+        <p>${streak > 0 ? `You have a ${streak}-day signal streak. Keep the route alive with one meaningful step.` : `Start a signal streak by finishing one quest today.`}</p>
+      </article>
+    ` : `<p class="muted">The current campaign arc is complete. Run a new scan to set the next season.</p>`;
   }
 
   function renderDiagnostic() {
@@ -598,7 +662,7 @@
       ["Completed quests", state.campaign.completedQuestIds.length],
       ["Completed chains", state.campaign.completedChainIds.length],
       ["Badges", state.rewards.badges.length],
-      ["Current lane", DATA.programs[state.campaign.laneRecommendation].label]
+      ["Best streak", `${state.rewards.longestStreak} days`]
     ].map(([label, value]) => `
       <article class="stat-card">
         <span class="stat-label">${label}</span>
@@ -718,6 +782,10 @@
         title: "Visible progress",
         detail: `I have completed ${state.campaign.completedQuestIds.length} quests, ${state.campaign.completedChainIds.length} chains, and unlocked ${state.rewards.badges.length} badges.`
       },
+      {
+        title: "Consistency signal",
+        detail: `My current streak is ${getCurrentStreak()} days and my best streak is ${state.rewards.longestStreak} days.`
+      },
       ...recentNotes.map((item) => ({
         title: `Recent note from ${item.quest.title}`,
         detail: item.value.trim().slice(0, 180)
@@ -729,10 +797,22 @@
         detail: "Changes in mood, energy, motivation, connection, consistency, and what made tasks easier or harder."
       },
       {
+        title: "Medication / treatment question",
+        detail: latest && latest.who5Score < 44
+          ? "My well-being signal has been low recently. Is there anything I should pay closer attention to between sessions?"
+          : "What signals should I watch between sessions so I can report changes more clearly?"
+      },
+      {
         title: "App-guided question",
         detail: latest && latest.stabilizationFlag
           ? "Should I prioritize stabilization and gentler pacing right now?"
           : `Does it make sense to keep focusing on ${DATA.programs[state.campaign.laneRecommendation].name} right now?`
+      },
+      {
+        title: "Recent wins worth mentioning",
+        detail: state.campaign.completedQuestIds.length
+          ? `I have already followed through on ${state.campaign.completedQuestIds.length} guided step${state.campaign.completedQuestIds.length === 1 ? "" : "s"}, which may say something useful about what kind of structure helps me.`
+          : "I have not built much follow-through yet, which may also be important to discuss."
       }
     ];
 
@@ -867,6 +947,7 @@
     document.body.dataset.theme = state.theme;
     $("theme-toggle").textContent = state.theme === "dark" ? "Dark" : "Light";
     renderHero();
+    renderMissionBrief();
     renderTopStats();
     renderCampaignState();
     renderDiagnostic();

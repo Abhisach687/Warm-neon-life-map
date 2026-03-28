@@ -1114,8 +1114,7 @@ body[data-theme="light"] .bottom-nav {
 }
 
 .sheet-header {
-  position: sticky;
-  top: 0;
+  position: static;
   padding-bottom: 1rem;
   background: linear-gradient(180deg, var(--surface-strong), transparent);
 }
@@ -1720,6 +1719,154 @@ body[data-theme="light"] .toast {
 .companion-copy {
   font-size: 1rem;
   line-height: 1.72;
+}
+
+.mission-card {
+  background:
+    linear-gradient(135deg, rgba(114, 223, 191, 0.12), transparent 55%),
+    linear-gradient(180deg, rgba(255, 184, 110, 0.08), transparent 45%),
+    linear-gradient(180deg, var(--surface) 0%, var(--bg-elevated) 100%);
+}
+
+.mission-brief {
+  display: grid;
+  gap: 0.95rem;
+  margin-top: 0.2rem;
+}
+
+.mission-step {
+  display: grid;
+  gap: 0.45rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.mission-step--primary {
+  border-color: rgba(114, 223, 191, 0.35);
+  background: rgba(114, 223, 191, 0.08);
+}
+
+.mission-step h4,
+.mission-step p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.progress-track--chapter {
+  margin: 0 0 1rem;
+  height: 12px;
+}
+
+.topbar,
+.card,
+.exercise-card,
+.source-card,
+.history-card,
+.program-card,
+.session-panel,
+.diagnostic-card,
+.command-card,
+.reward-card,
+.stack-card,
+.timeline-item,
+.mission-step {
+  overflow: hidden;
+}
+
+.topbar-copy,
+.card,
+.session-panel,
+.diagnostic-card,
+.command-card,
+.exercise-card,
+.source-card,
+.history-card,
+.program-card,
+.reward-card,
+.stack-card,
+.timeline-item {
+  min-width: 0;
+}
+
+.section-heading,
+.sheet-header,
+.sheet-actions {
+  flex-wrap: wrap;
+}
+
+.section-heading > .badge {
+  flex-shrink: 0;
+}
+
+.nav-button {
+  overflow: hidden;
+}
+
+.nav-title,
+.nav-caption,
+.badge,
+.pill,
+.meta-pill,
+.chip,
+.player-chip strong,
+.player-chip span,
+.stat-label,
+.stat-value,
+.command-card h4,
+.exercise-card h4,
+.exercise-card h3,
+.source-card h3,
+.history-card h4,
+.session-item h4,
+.session-item p,
+.mission-step h4,
+.mission-step p,
+.companion-copy,
+.card p {
+  overflow-wrap: anywhere;
+}
+
+#session-prep-summary,
+#archive-summary,
+#diagnostic-summary,
+#source-summary,
+#insight-stats {
+  min-width: 0;
+}
+
+#top-stats,
+#insight-stats,
+#source-summary,
+#session-prep-overview {
+  margin-top: 1rem;
+}
+
+@media (max-width: 720px) {
+  .play-hero,
+  .mission-card,
+  .section-grid > .card,
+  .view > .card {
+    margin-bottom: 1rem;
+  }
+
+  .hero-actions,
+  .command-card__actions,
+  .exercise-card__actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .hero-actions > *,
+  .command-card__actions > *,
+  .exercise-card__actions > * {
+    width: 100%;
+  }
+
+  .bottom-nav {
+    width: min(calc(100% - 1rem), 520px);
+  }
 }
 
 .timeline-item {

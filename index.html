@@ -63,15 +63,26 @@
 
             <div class="hero-actions">
               <button class="primary-button" id="start-next" type="button">
-                Continue campaign
+                Start now
               </button>
               <button class="secondary-button" id="resume-session" type="button">
-                Open current quest
+                Open quest
               </button>
               <button class="secondary-button" id="jump-diagnostic" type="button">
                 Run weekly scan
               </button>
             </div>
+          </section>
+
+          <section class="card mission-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Start Here</p>
+                <h3>What to do right now</h3>
+              </div>
+              <span class="badge" id="mission-urgency">guided next step</span>
+            </div>
+            <div id="mission-brief" class="mission-brief"></div>
           </section>
 
           <section class="stats-grid stats-grid--wide" id="top-stats" aria-label="Campaign overview"></section>
@@ -83,6 +94,9 @@
                 <h3>Where you are right now</h3>
               </div>
               <span class="badge" id="campaign-status-badge">Awaiting route</span>
+            </div>
+            <div class="progress-track progress-track--chapter">
+              <div class="progress-fill" id="chapter-progress-fill"></div>
             </div>
             <div id="active-chapter-strip" class="chapter-strip"></div>
             <div id="current-quest-card" class="command-card-stack"></div>
@@ -181,7 +195,7 @@
         </section>
 
         <section class="view" id="view-archive" aria-labelledby="archive-title">
-          <section class="card sticky-card">
+          <section class="card">
             <p class="eyebrow">Archive</p>
             <h2 id="archive-title">Quest archive and course reference</h2>
             <p class="muted" id="archive-summary">
@@ -382,18 +396,18 @@
       <nav class="bottom-nav" aria-label="Primary">
         <button class="nav-button active" data-view-target="play" type="button">
           <span class="nav-title">Play</span>
-          <span class="nav-caption">command board</span>
+          <span class="nav-caption">start here</span>
         </button>
         <button class="nav-button" data-view-target="archive" type="button">
           <span class="nav-title">Archive</span>
-          <span class="nav-caption">quest reference</span>
+          <span class="nav-caption">all quests</span>
         </button>
         <button class="nav-button" data-view-target="map" type="button">
           <span class="nav-title">Map</span>
-          <span class="nav-caption">nodes + timeline</span>
+          <span class="nav-caption">path</span>
         </button>
         <button class="nav-button" data-view-target="progress" type="button">
-          <span class="nav-title">Progress</span>
+          <span class="nav-title">Review</span>
           <span class="nav-caption">signals</span>
         </button>
         <button class="nav-button" data-view-target="sources" type="button">
