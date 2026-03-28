@@ -1,5 +1,6 @@
 :root {
   color-scheme: dark;
+  --topbar-offset: 0.6rem;
   --bg: #071218;
   --bg-soft: rgba(14, 27, 35, 0.92);
   --bg-elevated: rgba(15, 31, 40, 0.92);
@@ -138,15 +139,22 @@ code {
 }
 
 .topbar {
-  position: sticky;
-  top: 0;
-  z-index: 24;
+  position: relative;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-4);
-  padding: 1.05rem 0 1.15rem;
-  backdrop-filter: blur(18px);
+  margin-bottom: 0.95rem;
+  padding: 1rem 1rem 1.05rem;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(10, 20, 26, 0.92), rgba(10, 20, 26, 0.8));
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(20px);
+}
+
+body[data-theme="light"] .topbar {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(250, 253, 252, 0.88));
 }
 
 .topbar-copy {
