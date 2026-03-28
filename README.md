@@ -4,12 +4,6 @@ Live app: https://abhisach687.github.io/Warm-neon-life-map/
 
 Warm Neon Life-Map is a mobile-first self-improvement game with a cozy cyberpunk style.
 
-It turns public exercise ideas from these courses into a guided app:
-
-- University of Michigan: *The Science of Success*
-- Wesleyan University: *Creating Behavioral Change*
-- Yale University: *The Science of Well-Being*
-
 ## What this app does
 
 The app guides you through one next step at a time.
