@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="A cozy cyberpunk life-map game rooted in public exercises from The Science of Success, Creating Behavioral Change, and The Science of Well-Being."
+    />
+    <title>Being | Cozy Cyberpunk Life-Map</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-theme="dark">
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="topbar-copy">
+          <p class="eyebrow">Being</p>
+          <h1>Warm neon life-map</h1>
+          <p class="topbar-summary">
+            A guided cyberpunk quest board built from public exercises across
+            University of Michigan, Wesleyan, and Yale programs.
+          </p>
+        </div>
+        <div class="topbar-actions">
+          <div class="player-chip" id="top-player-chip"></div>
+          <button
+            class="icon-button"
+            id="theme-toggle"
+            type="button"
+            aria-label="Toggle theme"
+          >
+            Dark
+          </button>
+        </div>
+      </header>
+
+      <main class="views">
+        <section class="view active" id="view-play" aria-labelledby="play-title">
+          <section class="hero-card card play-hero">
+            <div class="hero-head">
+              <div>
+                <p class="eyebrow">Command Board</p>
+                <h2 id="play-title">One next step. One living campaign.</h2>
+                <p class="hero-copy">
+                  The board guides you linearly through evidence-backed quests.
+                  Each weekly scan adjusts your path. The world remembers your
+                  progress, but it never punishes you for pausing.
+                </p>
+              </div>
+              <div class="level-medal" id="hero-level"></div>
+            </div>
+
+            <div class="xp-panel">
+              <div class="xp-row">
+                <span id="xp-caption">0 XP banked</span>
+                <span id="xp-next">Level 1</span>
+              </div>
+              <div class="progress-track progress-track--hero">
+                <div class="progress-fill" id="xp-fill"></div>
+              </div>
+              <div class="pill-row" id="hero-highlights"></div>
+            </div>
+
+            <div class="hero-actions">
+              <button class="primary-button" id="start-next" type="button">
+                Continue campaign
+              </button>
+              <button class="secondary-button" id="resume-session" type="button">
+                Open current quest
+              </button>
+              <button class="secondary-button" id="jump-diagnostic" type="button">
+                Run weekly scan
+              </button>
+            </div>
+          </section>
+
+          <section class="stats-grid stats-grid--wide" id="top-stats" aria-label="Campaign overview"></section>
+
+          <section class="card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Campaign State</p>
+                <h3>Where you are right now</h3>
+              </div>
+              <span class="badge" id="campaign-status-badge">Awaiting route</span>
+            </div>
+            <div id="active-chapter-strip" class="chapter-strip"></div>
+            <div id="current-quest-card" class="command-card-stack"></div>
+          </section>
+
+          <div class="section-grid section-grid--featured">
+            <section class="card checkpoint-card" id="weekly-diagnostic-card">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Weekly Scan Event</p>
+                  <h3>Read the signal and reroute softly</h3>
+                </div>
+                <span class="badge" id="diagnostic-status">Due this week</span>
+              </div>
+              <p id="diagnostic-summary" class="muted"></p>
+              <div id="diagnostic-snapshot" class="stats-inline"></div>
+              <form id="diagnostic-form" class="diagnostic-form">
+                <div class="diagnostic-intro full-span">
+                  <p class="muted">
+                    This event uses the WHO-5 as a validated core, then adds
+                    evidence-informed routing items to decide whether your next
+                    best move is ignition, stabilization, momentum, or meaning.
+                  </p>
+                </div>
+                <div id="diagnostic-questions" class="diagnostic-questions full-span"></div>
+                <label class="text-field full-span">
+                  <span>Scan note</span>
+                  <textarea
+                    id="diagnostic-note"
+                    name="note"
+                    rows="3"
+                    placeholder="What signal are you noticing most strongly this week?"
+                  ></textarea>
+                </label>
+                <button class="primary-button full-span" type="submit">
+                  Save scan and reroute
+                </button>
+              </form>
+            </section>
+
+            <section class="card">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Companion</p>
+                  <h3>Reflective guidance from your archivist</h3>
+                </div>
+                <span class="badge" id="companion-tone">signal active</span>
+              </div>
+              <div id="companion-panel" class="companion-panel"></div>
+            </section>
+          </div>
+
+          <div class="section-grid">
+            <section class="card">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Upcoming Chain</p>
+                  <h3>What unlocks after this arc</h3>
+                </div>
+              </div>
+              <div id="upcoming-chain-preview" class="stack-list"></div>
+            </section>
+
+            <section class="card">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Node Map</p>
+                  <h3>Curated campaign network</h3>
+                </div>
+              </div>
+              <div id="node-map-preview" class="node-map"></div>
+            </section>
+          </div>
+
+          <div class="section-grid">
+            <section class="card">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Timeline</p>
+                  <h3>Recent story events</h3>
+                </div>
+              </div>
+              <div id="timeline-preview" class="stack-list"></div>
+            </section>
+
+            <section class="card">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Rewards</p>
+                  <h3>Artifacts and companion memories</h3>
+                </div>
+              </div>
+              <div id="reward-preview" class="reward-grid"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="view-archive" aria-labelledby="archive-title">
+          <section class="card sticky-card">
+            <p class="eyebrow">Archive</p>
+            <h2 id="archive-title">Quest archive and course reference</h2>
+            <p class="muted" id="archive-summary">
+              Browse the full public exercise set. Locked quests stay readable for
+              transparency, but the campaign unlocks them in order.
+            </p>
+            <label class="search-field">
+              <span class="sr-only">Search archive</span>
+              <input
+                id="search-input"
+                type="search"
+                placeholder="Search title, lane, chapter, course, or tag"
+                autocomplete="off"
+              />
+            </label>
+            <div class="chip-row" id="program-filters"></div>
+            <div class="chip-row" id="status-filters"></div>
+          </section>
+          <div id="library-results" class="exercise-grid exercise-grid--library"></div>
+        </section>
+
+        <section class="view" id="view-map" aria-labelledby="map-title">
+          <section class="card">
+            <p class="eyebrow">Life Map</p>
+            <h2 id="map-title">Timeline and guided node network</h2>
+            <div id="campaign-progress" class="program-grid"></div>
+          </section>
+          <div class="section-grid">
+            <section class="card">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Full Node Map</p>
+                  <h3>Every chain in the campaign</h3>
+                </div>
+              </div>
+              <div id="full-node-map" class="node-map node-map--full"></div>
+            </section>
+
+            <section class="card">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Campaign Timeline</p>
+                  <h3>Story chapters and completions</h3>
+                </div>
+              </div>
+              <div id="full-timeline" class="stack-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="view-progress" aria-labelledby="progress-title">
+          <section class="card">
+            <p class="eyebrow">Progress</p>
+            <h2 id="progress-title">Evidence signals and campaign gains</h2>
+            <div id="insight-stats" class="stats-grid stats-grid--wide"></div>
+          </section>
+
+          <div class="section-grid">
+            <section class="card">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Consistency</p>
+                  <h3>Last 28 days</h3>
+                </div>
+                <span class="badge" id="heatmap-caption"></span>
+              </div>
+              <div id="heatmap" class="heatmap" aria-label="Activity heatmap"></div>
+            </section>
+
+            <section class="card">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Lane Coverage</p>
+                  <h3>How your campaign is balanced</h3>
+                </div>
+              </div>
+              <div id="program-bars" class="bar-list"></div>
+            </section>
+          </div>
+
+          <div class="section-grid">
+            <section class="card">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Scan History</p>
+                  <h3>Weekly psychometric events</h3>
+                </div>
+                <span class="badge" id="diagnostic-history-caption">0 saved</span>
+              </div>
+              <div id="diagnostic-history" class="stack-list"></div>
+            </section>
+
+            <section class="card">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Badges</p>
+                  <h3>Unlocked without punishment</h3>
+                </div>
+                <span class="badge">no failure states</span>
+              </div>
+              <div id="achievement-grid" class="milestone-grid"></div>
+            </section>
+          </div>
+
+          <section class="card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Storage Center</p>
+                <h3>Manage saved campaign data</h3>
+              </div>
+              <span class="badge">localStorage + sessionStorage</span>
+            </div>
+            <p class="muted">
+              Campaign state, diagnostics, progress, rewards, notes, and timeline
+              events are saved in <code>localStorage</code>. Temporary UI state is
+              kept in <code>sessionStorage</code>.
+            </p>
+            <div class="hero-actions">
+              <button class="secondary-button" id="export-data" type="button">
+                Export campaign JSON
+              </button>
+              <button class="secondary-button" id="clear-session" type="button">
+                Reset session memory
+              </button>
+              <button class="danger-button" id="reset-data" type="button">
+                Reset progress
+              </button>
+            </div>
+          </section>
+        </section>
+
+        <section class="view" id="view-sources" aria-labelledby="sources-title">
+          <section class="card">
+            <p class="eyebrow">Evidence Base</p>
+            <h2 id="sources-title">Course and research grounding</h2>
+            <p class="muted">
+              The campaign uses public course descriptions and evidence-based
+              behavior-change and well-being sources. Meta-analyses and official
+              documentation are weighted most heavily.
+            </p>
+            <div id="source-summary" class="stats-grid stats-grid--wide"></div>
+          </section>
+          <div id="sources-list" class="source-list"></div>
+        </section>
+      </main>
+
+      <nav class="bottom-nav" aria-label="Primary">
+        <button class="nav-button active" data-view-target="play" type="button">
+          <span class="nav-title">Play</span>
+          <span class="nav-caption">command board</span>
+        </button>
+        <button class="nav-button" data-view-target="archive" type="button">
+          <span class="nav-title">Archive</span>
+          <span class="nav-caption">quest reference</span>
+        </button>
+        <button class="nav-button" data-view-target="map" type="button">
+          <span class="nav-title">Map</span>
+          <span class="nav-caption">nodes + timeline</span>
+        </button>
+        <button class="nav-button" data-view-target="progress" type="button">
+          <span class="nav-title">Progress</span>
+          <span class="nav-caption">signals</span>
+        </button>
+        <button class="nav-button" data-view-target="sources" type="button">
+          <span class="nav-title">Sources</span>
+          <span class="nav-caption">evidence</span>
+        </button>
+      </nav>
+    </div>
+
+    <div class="sheet-backdrop" id="sheet-backdrop" hidden></div>
+    <aside class="exercise-sheet" id="exercise-sheet" aria-hidden="true">
+      <div class="sheet-header">
+        <div>
+          <p class="eyebrow" id="sheet-program"></p>
+          <h2 id="sheet-title">Quest</h2>
+          <p class="muted" id="sheet-progress"></p>
+        </div>
+        <button class="icon-button" id="close-sheet" type="button" aria-label="Close quest">
+          Close
+        </button>
+      </div>
+      <div class="sheet-body">
+        <div class="meta-row" id="sheet-meta"></div>
+
+        <section class="sheet-section">
+          <h3>Why this matters</h3>
+          <p id="sheet-summary"></p>
+          <p class="muted" id="sheet-why"></p>
+        </section>
+
+        <section class="sheet-section">
+          <h3>Steps</h3>
+          <ol id="sheet-steps" class="sheet-list"></ol>
+        </section>
+
+        <section class="sheet-section">
+          <h3>Reflective prompts</h3>
+          <ul id="sheet-prompts" class="sheet-list"></ul>
+        </section>
+
+        <section class="sheet-section">
+          <div class="section-heading">
+            <h3>Campaign note</h3>
+            <span class="badge" id="sheet-note-status">Saved automatically</span>
+          </div>
+          <textarea
+            id="sheet-note"
+            rows="6"
+            placeholder="Capture what changed, what you noticed, and what the companion should remember."
+          ></textarea>
+        </section>
+
+        <section class="sheet-section">
+          <div class="section-heading">
+            <h3>Source basis</h3>
+            <span class="badge" id="sheet-source-mode"></span>
+          </div>
+          <p class="muted" id="sheet-inference"></p>
+          <div id="sheet-sources" class="linked-sources"></div>
+        </section>
+      </div>
+      <div class="sheet-actions">
+        <button class="secondary-button" id="sheet-archive" type="button">Back to archive</button>
+        <button class="secondary-button" id="sheet-next" type="button">Next step</button>
+        <button class="primary-button" id="sheet-complete" type="button">Complete quest</button>
+      </div>
+    </aside>
+
+    <div class="toast" id="toast" aria-live="polite" hidden></div>
+
+    <noscript>
+      <p class="noscript">
+        This app needs JavaScript enabled to render the campaign and save progress.
+      </p>
+    </noscript>
+
+    <script src="game-data.js"></script>
+    <script src="game-app.js"></script>
+  </body>
+</html>
